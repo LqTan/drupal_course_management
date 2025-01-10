@@ -1,0 +1,79 @@
+{# Template for payment confirmation email #}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.9em;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Xác nhận thanh toán thành công</h1>
+    </div>
+
+    <p>Kính gửi {{ student_name }},</p>
+    
+    <p>Chúng tôi xin xác nhận bạn đã thanh toán thành công cho khóa học sau:</p>
+
+    <table>
+      <tr>
+        <th colspan="2">Thông tin khóa học</th>
+      </tr>
+      <tr>
+        <td>Tên khóa học:</td>
+        <td>{{ course_name }}</td>
+      </tr>
+      <tr>
+        <td>Mã lớp:</td>
+        <td>{{ class_code }}</td>
+      </tr>
+      <tr>
+        <td>Học phí:</td>
+        <td>{{ amount|number_format(0, ',', '.') }} VNĐ</td>
+      </tr>
+    </table>
+
+    <p>Biên lai thanh toán đã được đính kèm trong email này. Bạn có thể tải về bằng cách click vào <a href="{{ receipt_url }}">đây</a>.</p>
+
+    <div class="footer">
+      <p>Email này được gửi tự động từ {{ site_name }}.</p>
+      <p>Nếu bạn cần hỗ trợ, vui lòng liên hệ với chúng tôi qua email hoặc hotline.</p>
+      <p>© {{ "now"|date('Y') }} {{ site_name }}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

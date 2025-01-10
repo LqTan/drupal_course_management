@@ -128,8 +128,8 @@ final class RegisterCourseApiResource extends ResourceBase {
   }
 
   /**
-   * Hàm này là hàm nhận request từ front-end và bắt đầu tiến trình xử lý thanh toán.
-   * Tham số $data chứa thông tin từ client gửi lên.
+   * Hàm này là hàm nhận request từ front-end và bắt đầu tiến trình xử lý thanh
+   * toán. Tham số $data chứa thông tin từ client gửi lên.
    *
    * Ví dụ xử lý thanh toán với VNPAY, mảng $data sẽ có dạng:
    * [
@@ -146,8 +146,6 @@ final class RegisterCourseApiResource extends ResourceBase {
    */
   public function post(array $data) {
     try {
-
-
       #region Bước 2: Kiểm tra đăng nhập xem người dùng có đăng nhập chưa
       if (!$this->currentUser->isAuthenticated()) {
         throw new HttpException(403, 'Bạn cần đăng nhập để thanh toán.');
@@ -164,7 +162,6 @@ final class RegisterCourseApiResource extends ResourceBase {
       $class_info = [];
 
       foreach ($data['class_codes'] as $class_code) {
-
         #region Doan này kiem tra trong CSDL xem có lớp học không, không có thì báo lỗi
         $query = \Drupal::entityQuery('node')
           ->condition('type', 'class')
@@ -244,9 +241,12 @@ final class RegisterCourseApiResource extends ResourceBase {
 
           #region Doạn này là chuẩn bị thông tin đơn hàng để gửi sang VNPAY
           $order_info = [
-            'amount' => $total_amount,                // Tổng số tiền cần thanh toán, xem lại bước 6.
-            'class_codes' => $data['class_codes'],    // Danh sách mã lớp học, xem lại bước 3.
-            'user_id' => $this->currentUser->id(),    // ID của người dùng đăng nhập.
+            'amount' => $total_amount,
+            // Tổng số tiền cần thanh toán, xem lại bước 6.
+            'class_codes' => $data['class_codes'],
+            // Danh sách mã lớp học, xem lại bước 3.
+            'user_id' => $this->currentUser->id(),
+            // ID của người dùng đăng nhập.
           ];
           #endregion
 
@@ -265,7 +265,7 @@ final class RegisterCourseApiResource extends ResourceBase {
               'student_name' => $this->currentUser->getDisplayName(),
             ],
           ]);
-          #endregion
+        #endregion
 
         case 'paypal':
           if (empty($data['payment_transaction_id'])) {
@@ -342,6 +342,26 @@ final class RegisterCourseApiResource extends ResourceBase {
           ];
 
           $receipt = $receipt_service->createReceipt($receipt_data);
+
+          // Thêm đoạn code gửi email xác nhận thanh toán
+          foreach ($class_info as $info) {
+            $params = [
+              'student_name' => $this->currentUser->getDisplayName(),
+              'course_name' => $info['course_name'],
+              'class_code' => $info['class_code'],
+              'amount' => $info['amount'],
+              'receipt_id' => $receipt->id(),
+              'site_name' => \Drupal::config('system.site')->get('name'),
+            ];
+
+            \Drupal::service('plugin.manager.mail')->mail(
+              'course_register',
+              'payment_confirmation',
+              $this->currentUser->getEmail(),
+              'vi',
+              $params
+            );
+          }
 
           return new ResourceResponse([
             'message' => 'Thanh toán thành công',

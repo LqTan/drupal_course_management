@@ -7,3 +7,13 @@ user_info.upload_avatar:
     _permission: 'access content'
   options:
     _auth: ['basic_auth']
+
+user_info.change_password:
+  path: '/api/user-info-api/{uid}/change-password'
+  defaults:
+    _controller: '\Drupal\user_info\Controller\UserPasswordController::changePassword'
+  methods: [POST]
+  requirements:
+    _permission: 'access content'
+  options:
+    _auth: ['basic_auth']

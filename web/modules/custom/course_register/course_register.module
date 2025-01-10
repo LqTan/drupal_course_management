@@ -152,12 +152,7 @@ function course_register_mail($key, &$message, $params) {
       // 5. Lưu ý về thanh toán
       $body[] = t('Lưu ý: Nếu bạn không hoàn tất thanh toán học phí trong thời hạn quy định, bạn sẽ không được bổ sung vào danh sách lớp của lớp học và không thể tiếp tục theo học khóa học này cho đến khi khóa học này mở lại một lần nữa.');
 
-      // 6. Link thanh toán
-      $body[] = t('Vui lòng click vào đường dẫn sau để tiến hành thanh toán: @url', [
-        '@url' => $params['payment_url'],
-      ]);
-
-      // 7. Thêm thông tin đăng nhập nếu là anonymous user
+      // 6. Thêm thông tin đăng nhập nếu là anonymous user
       if (!empty($params['username']) && !empty($params['password'])) {
         $account_table = "
           <table style='border-collapse: collapse; width: 100%; margin: 15px 0;'>
@@ -184,6 +179,28 @@ function course_register_mail($key, &$message, $params) {
       $message['body'] = $body;
 
       // Thiết lập định dạng HTML cho email
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed; delsp=yes';
+      break;
+
+    case 'payment_confirmation':
+      $message['subject'] = t('Xác nhận thanh toán thành công');
+
+      // Tạo URL để tải biên lai
+      $receipt_url = 'https://' . 'course-management.lndo.site' . '/receipt/' . $params['receipt_id'] . '/pdf';
+
+      // Render template
+      $body = [
+        '#theme' => 'payment_confirmation',
+        '#student_name' => $params['student_name'],
+        '#course_name' => $params['course_name'],
+        '#class_code' => $params['class_code'],
+        '#amount' => $params['amount'],
+        '#receipt_url' => $receipt_url,
+        '#site_name' => \Drupal::config('system.site')->get('name'),
+      ];
+
+      $message['body'][] = \Drupal::service('renderer')->render($body);
+      // Thêm header cho HTML email
       $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed; delsp=yes';
       break;
 
@@ -274,12 +291,7 @@ function course_register_mail($key, &$message, $params) {
         '@deadline' => $params['payment_deadline'],
       ]);
 
-      // 5. Link thanh toán
-      $body[] = t('Vui lòng click vào đường dẫn sau để tiến hành thanh toán: @url', [
-        '@url' => $params['payment_url'],
-      ]);
-
-      // 6. Thêm thông tin đăng nhập nếu là anonymous user
+      // 5. Thêm thông tin đăng nhập nếu là anonymous user
       if (!empty($params['username']) && !empty($params['password'])) {
         $account_table = "
           <table style='border-collapse: collapse; width: 100%; margin: 15px 0;'>
@@ -302,7 +314,7 @@ function course_register_mail($key, &$message, $params) {
         $body[] = t('Vui lòng đổi mật khẩu sau khi đăng nhập lần đầu để bảo mật tài khoản.');
       }
 
-      // 7. Lưu ý quan trọng
+      // 6. Lưu ý quan trọng
       $body[] = t('<strong>Lưu ý:</strong>');
       $body[] = t('- Vui lòng thanh toán lệ phí thi đúng hạn để hoàn tất đăng ký.');
       $body[] = t('- Mang theo CCCD/CMND khi đến dự thi để đối chiếu thông tin.');
@@ -426,16 +438,16 @@ function course_register_theme() {
       ],
       'template' => 'mail/exam-registration-confirmation',
     ],
-    'exam_payment_confirmation' => [
-      'variables' => [
-        'exam_info' => NULL,
-        'payment_info' => NULL,
-        'candidate_info' => NULL,
-        'site_name' => NULL,
-        'site_url' => NULL,
-      ],
-      'template' => 'mail/exam-payment-confirmation',
-    ],
+//    'exam_payment_confirmation' => [
+//      'variables' => [
+//        'exam_info' => NULL,
+//        'payment_info' => NULL,
+//        'candidate_info' => NULL,
+//        'site_name' => NULL,
+//        'site_url' => NULL,
+//      ],
+//      'template' => 'mail/exam-payment-confirmation',
+//    ],
     'node__exam_payment_receipt__pdf' => [
       'template' => 'node--exam-payment-receipt--pdf',
       'base hook' => 'node',
@@ -454,6 +466,17 @@ function course_register_theme() {
         'site_name' => NULL,
         'site_url' => NULL,
       ],
+    ],
+    'payment_confirmation' => [
+      'variables' => [
+        'student_name' => NULL,
+        'course_name' => NULL,
+        'class_code' => NULL,
+        'amount' => NULL,
+        'receipt_url' => NULL,
+        'site_name' => NULL,
+      ],
+      'template' => 'mail/payment-confirmation',
     ],
   ];
 }

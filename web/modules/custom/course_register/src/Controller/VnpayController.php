@@ -179,6 +179,44 @@ class VnpayController extends ControllerBase {
 
       $receipt = $receipt_service->createReceipt($receipt_data);
 
+      // Gửi email xác nhận thanh toán
+      foreach ($transactions as $transaction) {
+        $query = \Drupal::entityQuery('node')
+          ->condition('type', 'class')
+          ->condition('title', $transaction['class_code'])
+          ->accessCheck(TRUE)
+          ->range(0, 1);
+
+        $results = $query->execute();
+        if (!empty($results)) {
+          $class = \Drupal::entityTypeManager()
+            ->getStorage('node')
+            ->load(reset($results));
+
+          if ($class) {
+            $course = $class->get('field_class_course_reference')->entity;
+            if ($course) {
+              $params = [
+                'student_name' => $user->getDisplayName(),
+                'course_name' => $course->label(),
+                'class_code' => $transaction['class_code'],
+                'amount' => $transaction['amount'],
+                'receipt_id' => $receipt->id(),
+                'site_name' => \Drupal::config('system.site')->get('name'),
+              ];
+
+              \Drupal::service('plugin.manager.mail')->mail(
+                'course_register',
+                'payment_confirmation',
+                $user->getEmail(),
+                'vi',
+                $params
+              );
+            }
+          }
+        }
+      }
+
       // Cập nhật transactions array để thêm receipt_id
       foreach ($transactions as &$transaction) {
         $transaction['receipt_id'] = $receipt->id();
@@ -208,18 +246,18 @@ class VnpayController extends ControllerBase {
           '@error' => $e->getMessage(),
         ]);
 
-        $error_data = [
-          'status' => 'error',
-          'code' => 99,
-          'message' => $e->getMessage(),
-          'data' => [
-            'vnp_ResponseCode' => 99,
-            'vnp_TransactionStatus' => 99,
-          ],
-        ];
+      $error_data = [
+        'status' => 'error',
+        'code' => 99,
+        'message' => $e->getMessage(),
+        'data' => [
+          'vnp_ResponseCode' => 99,
+          'vnp_TransactionStatus' => 99,
+        ],
+      ];
 
-        $query = http_build_query($error_data);
-        return new TrustedRedirectResponse('http://localhost:5173/payment/vnpay-return?' . $query);
+      $query = http_build_query($error_data);
+      return new TrustedRedirectResponse('http://localhost:5173/payment/vnpay-return?' . $query);
     }
   }
 
