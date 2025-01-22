@@ -6,6 +6,7 @@ namespace Drupal\course_register\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Routing\TrustedRedirectResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\node\Entity\Node;
 use Drupal\Core\Mail\MailManagerInterface;
@@ -167,6 +168,7 @@ class ExamPaymentController extends ControllerBase {
 
         $query = http_build_query($response_data);
         return new TrustedRedirectResponse('http://localhost:5173/payment/exam-vnpay-return?' . $query);
+//        return new JsonResponse($response_data);
       }
 
       // Xử lý khi giao dịch thất bại

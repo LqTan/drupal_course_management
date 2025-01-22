@@ -276,7 +276,7 @@ final class ExamPaymentResource extends ResourceBase {
       "vnp_Locale" => "vn",
       "vnp_OrderInfo" => $vnp_OrderInfo,
       "vnp_OrderType" => "exam_fee",
-      "vnp_ReturnUrl" => \Drupal::request()->getSchemeAndHttpHost() . '/payment/exam-vnpay-return',
+      "vnp_ReturnUrl" => 'http://course-management.lndo.site' . '/payment/exam-vnpay-return',
       "vnp_TxnRef" => $vnp_TxnRef,
     ];
 
